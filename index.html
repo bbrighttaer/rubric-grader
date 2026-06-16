@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rubric Grader</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzI1NjNlYiIvPjxyZWN0IHg9IjkiIHk9IjEwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTYiIHJ4PSIyIiBmaWxsPSJ3aGl0ZSIvPjxyZWN0IHg9IjEzIiB5PSI4IiB3aWR0aD0iNiIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iIzkzYzVmZCIvPjxwb2x5bGluZSBwb2ludHM9IjEyLDE5IDE1LDIyIDIxLDE1IiBmaWxsPSJub25lIiBzdHJva2U9IiMyNTYzZWIiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>Rubric Grader</h1>
+      <p class="subtitle">Load a Turnitin rubric (.xls) to grade a student submission</p>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+      <span class="icon" id="theme-icon">🌙</span>
+      <span id="theme-label">Dark</span>
+    </button>
+  </header>
+
+  <main>
+
+    <!-- Step 1: Load rubric -->
+    <section id="upload-section" class="card">
+      <h2>1. Load Rubric</h2>
+      <div class="upload-area" id="drop-zone">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+        <p>Drag &amp; drop your <strong>.xls</strong> rubric file here, or</p>
+        <label class="btn btn-primary" for="file-input">Browse file</label>
+        <input type="file" id="file-input" accept=".xls,.xlsx" />
+        <p class="file-hint" id="file-name">No file selected</p>
+      </div>
+    </section>
+
+    <!-- Step 2: Student info -->
+    <section id="student-section" class="card hidden">
+      <h2>2. Student Details</h2>
+      <div class="student-fields">
+        <div class="field-group">
+          <label for="student-name">Student Name</label>
+          <input type="text" id="student-name" placeholder="e.g. Jane Smith" />
+        </div>
+        <div class="field-group">
+          <label for="student-id">Student ID</label>
+          <input type="text" id="student-id" placeholder="e.g. S12345678" />
+        </div>
+        <div class="field-group">
+          <label for="assessment-name">Assessment</label>
+          <input type="text" id="assessment-name" placeholder="e.g. Assessment D" />
+        </div>
+        <div class="field-group">
+          <label for="total-marks">Total marks <span class="field-hint">(score will be scaled to this)</span></label>
+          <input type="number" id="total-marks" placeholder="e.g. 30" min="1" step="any" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Grade criteria -->
+    <section id="grading-section" class="card hidden">
+      <h2>3. Grade Criteria</h2>
+      <div id="rubric-info" class="rubric-meta"></div>
+      <div id="criteria-list"></div>
+    </section>
+
+    <!-- Step 4: Result -->
+    <section id="result-section" class="card hidden">
+      <h2>4. Result</h2>
+
+      <div class="score-display">
+        <div class="score-circle">
+          <span id="final-score">—</span>
+          <span class="score-label" id="score-label">/ —</span>
+        </div>
+        <div class="score-meta">
+          <p id="score-grade-label" class="grade-label"></p>
+          <p id="score-percent" class="score-percent"></p>
+        </div>
+      </div>
+
+      <div class="feedback-block">
+        <div class="feedback-header">
+          <h3>Feedback</h3>
+          <button class="btn btn-secondary" id="copy-btn">Copy feedback</button>
+        </div>
+        <div id="feedback-output" class="feedback-output" contenteditable="false"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-outline" id="reset-btn">Grade another student</button>
+        <button class="btn btn-outline" id="reload-btn">Load different rubric</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SheetJS for XLS parsing (loaded from local vendor file) -->
+  <script src="js/xlsx.full.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Vendor (regenerate with: curl -L https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js -o js/xlsx.full.min.js)
+js/xlsx.full.min.js
