@@ -6,5 +6,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Vendor (regenerate with: curl -L https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js -o js/xlsx.full.min.js)
+# Vendor (loaded from CDN, not bundled locally)
 js/xlsx.full.min.js
