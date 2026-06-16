@@ -65,14 +65,80 @@ dropZone.addEventListener('drop', e => {
 
 function handleFile(file) {
   if (!file) return;
-  if (!file.name.match(/\.xlsx?$/i)) {
-    alert('Please select an .xls or .xlsx file.');
+  if (!file.name.match(/\.(xlsx?|rbc)$/i)) {
+    alert('Please select an .xls, .xlsx, or .rbc file.');
     return;
   }
   fileNameEl.textContent = file.name;
   const reader = new FileReader();
-  reader.onload = e => parseRubric(e.target.result, file.name);
-  reader.readAsArrayBuffer(file);
+  if (file.name.match(/\.rbc$/i)) {
+    reader.onload = e => parseRbcRubric(e.target.result, file.name);
+    reader.readAsText(file);
+  } else {
+    reader.onload = e => parseRubric(e.target.result, file.name);
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// ── Parse Turnitin .rbc rubric (JSON format) ──
+function parseRbcRubric(text, fileName) {
+  let data;
+  try { data = JSON.parse(text); }
+  catch (e) { alert('Could not parse .rbc file — invalid JSON.'); return; }
+
+  const rawScales    = data.RubricScale       || [];
+  const rawCriteria  = data.RubricCriterion   || [];
+  const rawCritScales= data.RubricCriterionScale || [];
+
+  if (!rawScales.length || !rawCriteria.length) {
+    alert('No rubric data found in this .rbc file.');
+    return;
+  }
+
+  // Build scale lookup: id → { title, value }
+  const scaleById = {};
+  rawScales.sort((a, b) => a.position - b.position)
+    .forEach(s => { scaleById[s.id] = { title: s.name, value: s.value }; });
+
+  // Build criterion-scale descriptor lookup: criterionId+scaleValueId → description
+  const descMap = {};
+  rawCritScales.forEach(cs => {
+    descMap[`${cs.criterion}_${cs.scale_value}`] = cs.description || '';
+  });
+
+  // Build scales array in position order
+  const scales = rawScales
+    .sort((a, b) => a.position - b.position)
+    .map(s => ({ title: s.name, value: s.value }));
+
+  // Build criteria in position order
+  const criteria = rawCriteria
+    .sort((a, b) => a.position - b.position)
+    .map(crit => {
+      const descriptors = (crit.criterion_scales || []).map(scaleId => {
+        const scale = scaleById[scaleId];
+        if (!scale) return '';
+        return descMap[`${crit.id}_${scaleId}`] || '';
+      });
+      return {
+        title:      crit.name        || '',
+        desc:       crit.description || '',
+        weight:     crit.value       || null,
+        weightStr:  crit.value != null ? crit.value + '%' : '',
+        descriptors,
+      };
+    });
+
+  const maxScore = scales[0].value !== null ? scales[0].value : 100;
+  rubric = { name: fileName.replace(/\.rbc$/i, ''), scales, criteria, maxScore };
+  selections = {};
+
+  renderGrading();
+  collapseUploadSection();
+  studentSection.classList.remove('hidden');
+  gradingSection.classList.remove('hidden');
+  resultSection.classList.add('hidden');
+  window.scrollTo({ top: studentSection.offsetTop - 20, behavior: 'smooth' });
 }
 
 // ── Parse Turnitin XLS rubric ──
@@ -482,9 +548,9 @@ function collapseUploadSection() {
       `<h2>1. Load Rubric</h2>
       <div class="upload-area" id="drop-zone">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-        <p>Drag &amp; drop your <strong>.xls</strong> rubric file here, or</p>
+        <p>Drag &amp; drop your <strong>.xls</strong> or <strong>.rbc</strong> rubric file here, or</p>
         <label class="btn btn-primary" for="file-input">Browse file</label>
-        <input type="file" id="file-input" accept=".xls,.xlsx" />
+        <input type="file" id="file-input" accept=".xls,.xlsx,.rbc" />
         <p class="file-hint" id="file-name">No file selected</p>
       </div>`;
     reattachUploadListeners();
