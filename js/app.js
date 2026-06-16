@@ -437,13 +437,15 @@ function calculateResult() {
   scorePercentEl.textContent = `${pct}%`;
 
   // Build feedback
-  buildFeedback(score, maxScore, pct, gradeLabel);
+  buildFeedback(score, maxScore, maxScaleVal, pct, gradeLabel);
 
   resultSection.classList.remove('hidden');
   window.scrollTo({ top: resultSection.offsetTop - 20, behavior: 'smooth' });
 }
 
-function buildFeedback(score, maxScore, pct, gradeLabel) {
+function buildFeedback(score, maxScore, maxScaleVal, pct, gradeLabel) {
+  const hasWeights = rubric.criteria.every(c => c.weight !== null);
+
   let lines = [];
   lines.push(`ASSESSMENT FEEDBACK`);
   lines.push(`${'─'.repeat(50)}`);
@@ -455,11 +457,21 @@ function buildFeedback(score, maxScore, pct, gradeLabel) {
     const descriptor = crit.descriptors[sel.scaleIndex] || '';
     const comment    = (sel.comment || '').trim();
 
-    lines.push(`▸ ${crit.title}`);
-    const scaleVal = sel.adjustedVal !== undefined && sel.adjustedVal !== null
+    const rawVal = sel.adjustedVal !== undefined && sel.adjustedVal !== null
       ? sel.adjustedVal
-      : (scale.value !== null ? scale.value : '');
-    lines.push(`  Grade     : ${scale.title}${scaleVal !== '' ? ' (' + scaleVal + ')' : ''}`);
+      : (scale.value !== null ? scale.value : 0);
+    const ratio = maxScaleVal > 0 ? rawVal / maxScaleVal : 0;
+
+    let scaledScore;
+    if (hasWeights && crit.weight !== null) {
+      scaledScore = (crit.weight / 100) * ratio * maxScore;
+    } else {
+      scaledScore = ratio * maxScore / rubric.criteria.length;
+    }
+    scaledScore = Math.round(scaledScore * 100) / 100;
+
+    lines.push(`▸ ${crit.title}`);
+    lines.push(`  Grade     : ${scale.title} (${scaledScore})`);
     if (descriptor) lines.push(`  Standard  : ${descriptor}`);
     if (comment)    lines.push(`  Comment   : ${comment}`);
     lines.push('');
