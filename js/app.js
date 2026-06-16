@@ -456,7 +456,10 @@ function buildFeedback(score, maxScore, pct, gradeLabel) {
     const comment    = (sel.comment || '').trim();
 
     lines.push(`▸ ${crit.title}`);
-    lines.push(`  Grade     : ${scale.title}`);
+    const scaleVal = sel.adjustedVal !== undefined && sel.adjustedVal !== null
+      ? sel.adjustedVal
+      : (scale.value !== null ? scale.value : '');
+    lines.push(`  Grade     : ${scale.title}${scaleVal !== '' ? ' (' + scaleVal + ')' : ''}`);
     if (descriptor) lines.push(`  Standard  : ${descriptor}`);
     if (comment)    lines.push(`  Comment   : ${comment}`);
     lines.push('');
