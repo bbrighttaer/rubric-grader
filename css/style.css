@@ -218,6 +218,25 @@ main {
 }
 .field-group input:focus { border-color: var(--primary); }
 .field-hint { font-weight: 400; color: var(--muted); font-size: .75rem; }
+.field-error {
+  display: block;
+  font-size: .75rem;
+  color: var(--danger);
+  margin-top: .3rem;
+}
+.input-error {
+  border-color: var(--danger) !important;
+  background: #fff5f5;
+}
+[data-theme="dark"] .input-error { background: #2d1515; }
+.criterion-ungraded {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 2px rgba(220,38,38,.15);
+}
+.criterion-ungraded .criterion-header {
+  background: #fff5f5;
+}
+[data-theme="dark"] .criterion-ungraded .criterion-header { background: #2d1515; }
 
 /* ── Rubric meta ── */
 .rubric-meta {

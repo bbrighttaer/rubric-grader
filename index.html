@@ -31,6 +31,7 @@
         <label class="btn btn-primary" for="file-input">Browse file</label>
         <input type="file" id="file-input" accept=".xls,.xlsx,.rbc" />
         <p class="file-hint" id="file-name">No file selected</p>
+        <p class="field-error hidden" id="file-error">Please select a .xls, .xlsx, or .rbc file</p>
       </div>
     </section>
 
@@ -53,6 +54,7 @@
         <div class="field-group">
           <label for="total-marks">Total marks <span class="field-hint">(score will be scaled to this)</span></label>
           <input type="number" id="total-marks" placeholder="e.g. 30" min="1" step="any" />
+          <span class="field-error hidden" id="total-marks-error">Must be a number greater than 0</span>
         </div>
       </div>
     </section>

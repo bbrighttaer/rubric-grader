@@ -65,10 +65,12 @@ dropZone.addEventListener('drop', e => {
 
 function handleFile(file) {
   if (!file) return;
+  const fileError = document.getElementById('file-error');
   if (!file.name.match(/\.(xlsx?|rbc)$/i)) {
-    alert('Please select an .xls, .xlsx, or .rbc file.');
+    fileError.classList.remove('hidden');
     return;
   }
+  fileError.classList.add('hidden');
   fileNameEl.textContent = file.name;
   const reader = new FileReader();
   if (file.name.match(/\.rbc$/i)) {
@@ -84,14 +86,14 @@ function handleFile(file) {
 function parseRbcRubric(text, fileName) {
   let data;
   try { data = JSON.parse(text); }
-  catch (e) { alert('Could not parse .rbc file — invalid JSON.'); return; }
+  catch (e) { showFileError('Could not parse .rbc file — invalid JSON.'); return; }
 
   const rawScales    = data.RubricScale       || [];
   const rawCriteria  = data.RubricCriterion   || [];
   const rawCritScales= data.RubricCriterionScale || [];
 
   if (!rawScales.length || !rawCriteria.length) {
-    alert('No rubric data found in this .rbc file.');
+    showFileError('No rubric data found in this .rbc file.');
     return;
   }
 
@@ -210,7 +212,7 @@ function parseRubric(arrayBuffer, fileName) {
   }
 
   if (criteria.length === 0) {
-    alert('No criteria found in this rubric file.');
+    showFileError('No criteria found in this rubric file.');
     return;
   }
 
@@ -279,6 +281,7 @@ function renderGrading() {
       opt.querySelector('input').addEventListener('change', () => {
         if (!selections[ci]) selections[ci] = { scaleIndex: si, adjustedVal: scale.value, comment: '' };
         else { selections[ci].scaleIndex = si; selections[ci].adjustedVal = scale.value; }
+        document.getElementById(`crit-${ci}`).classList.remove('criterion-ungraded');
         showAdjuster(ci, si);
         updateProgress();
       });
@@ -392,8 +395,36 @@ function updateProgress() {
 
 // ── Calculate and display result ──
 function calculateResult() {
+  let valid = true;
+
+  // Validate total marks if provided
+  const totalMarksEl    = document.getElementById('total-marks');
+  const totalMarksError = document.getElementById('total-marks-error');
+  const totalMarksInput = parseFloat(totalMarksEl.value);
+  const totalMarksSet   = totalMarksEl.value.trim() !== '';
+  if (totalMarksSet && (isNaN(totalMarksInput) || totalMarksInput <= 0)) {
+    totalMarksEl.classList.add('input-error');
+    totalMarksError.classList.remove('hidden');
+    valid = false;
+  } else {
+    totalMarksEl.classList.remove('input-error');
+    totalMarksError.classList.add('hidden');
+  }
+
+  // Highlight any ungraded criteria
+  rubric.criteria.forEach((_, ci) => {
+    const card = document.getElementById(`crit-${ci}`);
+    const graded = selections[ci] && selections[ci].scaleIndex !== null && selections[ci].scaleIndex !== undefined;
+    card.classList.toggle('criterion-ungraded', !graded);
+  });
+  const allGraded = rubric.criteria.every((_, ci) =>
+    selections[ci] && selections[ci].scaleIndex !== null && selections[ci].scaleIndex !== undefined
+  );
+  if (!allGraded) valid = false;
+
+  if (!valid) return;
+
   // User-supplied total marks overrides the rubric's max scale value.
-  const totalMarksInput = parseFloat(document.getElementById('total-marks').value);
   const maxScaleVal = rubric.scales[0].value !== null ? rubric.scales[0].value : 100;
   const maxScore = !isNaN(totalMarksInput) && totalMarksInput > 0 ? totalMarksInput : maxScaleVal;
 
@@ -601,6 +632,39 @@ function reattachUploadListeners() {
     if (file) handleFile(file);
   });
 }
+
+// ── Validation helpers ──
+function showFileError(msg) {
+  const el = document.getElementById('file-error');
+  if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const totalMarksEl = document.getElementById('total-marks');
+  if (totalMarksEl) {
+    totalMarksEl.addEventListener('blur', () => {
+      const error = document.getElementById('total-marks-error');
+      const val   = totalMarksEl.value.trim();
+      const num   = parseFloat(val);
+      if (val !== '' && (isNaN(num) || num <= 0)) {
+        totalMarksEl.classList.add('input-error');
+        error.classList.remove('hidden');
+      } else {
+        totalMarksEl.classList.remove('input-error');
+        error.classList.add('hidden');
+      }
+    });
+    totalMarksEl.addEventListener('input', () => {
+      const error = document.getElementById('total-marks-error');
+      const val   = totalMarksEl.value.trim();
+      const num   = parseFloat(val);
+      if (val === '' || num > 0) {
+        totalMarksEl.classList.remove('input-error');
+        error.classList.add('hidden');
+      }
+    });
+  }
+});
 
 // ── Toast ──
 function showToast(msg) {
