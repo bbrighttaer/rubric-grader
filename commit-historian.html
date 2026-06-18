@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commit Historian</title>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070e;
+    --surface: rgba(255,255,255,0.025);
+    --border: rgba(255,255,255,0.06);
+    --text: #dde1ed;
+    --dim: #5c6282;
+    --muted: #4a5068;
+    --faint: #2a2e42;
+    --accent: #34d399;
+    --accent2: #059669;
+    --red: #f87171;
+    --red2: #dc2626;
+    --purple: #a78bfa;
+    --yellow: #fbbf24;
+    --orange: #f97316;
+    --blue: #60a5fa;
+    --sky: #7dd3fc;
+    --pink: #f472b6;
+    --mono: 'DM Mono', 'Menlo', 'Consolas', monospace;
+    --serif: 'Bitter', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--serif); min-height: 100vh; }
+  ::placeholder { color: #2d3150; }
+  a { color: var(--yellow); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes pulse { 0%,100% { opacity:.5 } 50% { opacity:1 } }
+  @keyframes barGrow { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+  .fade-up { animation: fadeUp .5s ease both; }
+  .fade-up-1 { animation-delay: .05s; }
+  .fade-up-2 { animation-delay: .1s; }
+  .fade-up-3 { animation-delay: .15s; }
+  .fade-up-4 { animation-delay: .2s; }
+  .fade-up-5 { animation-delay: .25s; }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 44px 16px 80px; }
+
+  /* ── Header ── */
+  .header { text-align: center; margin-bottom: 44px; }
+  .header-tag {
+    display: inline-block; padding: 4px 14px; border-radius: 6px;
+    background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.15);
+    font: 11px/1 var(--mono); color: var(--accent); letter-spacing: 1px; margin-bottom: 14px;
+  }
+  .header h1 {
+    font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(160deg, #e8ecf4 20%, #5a6080 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px;
+  }
+  .header p { color: var(--dim); font-size: 15px; }
+
+  /* ── Input ── */
+  .input-row { display: flex; gap: 10px; max-width: 660px; margin: 0 auto 44px; flex-wrap: wrap; }
+  .input-row input {
+    flex: 1; min-width: 220px; padding: 13px 18px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font: 14px/1 var(--mono); outline: none;
+    transition: border-color .2s;
+  }
+  .input-row input:focus { border-color: rgba(52,211,153,0.35); }
+  .input-row button {
+    padding: 13px 28px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #050a08; font: 700 14px/1 var(--serif); cursor: pointer;
+    transition: opacity .2s;
+  }
+  .input-row button:disabled { background: #161622; color: var(--dim); cursor: wait; opacity: .5; }
+
+  /* ── Status / Error ── */
+  .status {
+    text-align: center; margin-bottom: 24px; animation: pulse 1.5s infinite;
+    font: 13px/1 var(--mono); color: var(--accent);
+  }
+  .status span {
+    display: inline-block; padding: 10px 20px; border-radius: 8px;
+    background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.1);
+  }
+  .error-box {
+    max-width: 660px; margin: 0 auto 24px; padding: 14px 18px;
+    background: rgba(239,68,68,0.06); border-radius: 10px;
+    border: 1px solid rgba(239,68,68,0.15); color: var(--red);
+    font: 13px/1.5 var(--mono); word-break: break-word;
+  }
+
+  /* ── Repo Title ── */
+  .repo-title { margin-bottom: 6px; font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+  .repo-title .owner { color: var(--accent); }
+  .repo-title .sep { color: var(--faint); }
+  .repo-meta { display: flex; gap: 14px; flex-wrap: wrap; font: 12px/1 var(--mono); color: var(--muted); margin-bottom: 28px; }
+
+  /* ── Cards ── */
+  .cards { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+  .card {
+    background: linear-gradient(165deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px 22px; flex: 1 1 170px; position: relative; overflow: hidden;
+  }
+  .card-icon { position: absolute; top: 8px; right: 12px; font-size: 36px; opacity: .07; }
+  .card-label { font: 10px/1 var(--mono); color: var(--dim); letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 8px; }
+  .card-value { font-size: 24px; font-weight: 800; color: #e8ecf4; letter-spacing: -0.5px; line-height: 1.1; }
+  .card-value.green { color: var(--accent); }
+  .card-value.red { color: var(--red); }
+  .card-value.purple { color: var(--purple); }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* ── Sections ── */
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 28px;
+  }
+  .section-title {
+    font: 10px/1 var(--mono); color: var(--dim); letter-spacing: 1.8px;
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  /* ── Change bar ── */
+  .change-bar { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .change-bar-track { flex: 1; height: 6px; border-radius: 4px; background: #0f1020; overflow: hidden; display: flex; }
+  .change-bar-track.wide { height: 8px; }
+  .change-bar-add { background: linear-gradient(90deg, var(--accent2), var(--accent)); height: 100%; border-radius: 4px 0 0 4px; transition: width .4s; transform-origin: left; animation: barGrow .6s ease both; }
+  .change-bar-del { background: linear-gradient(90deg, var(--red), var(--red2)); height: 100%; flex: 1; border-radius: 0 4px 4px 0; }
+  .change-bar-only-add { background: linear-gradient(90deg, var(--accent2), var(--accent)); height: 100%; width: 100%; border-radius: 4px; transform-origin: left; animation: barGrow .6s ease both; }
+  .cb-num { font: 11px/1 var(--mono); min-width: 40px; text-align: right; }
+  .cb-num.wide { font-size: 12px; min-width: 50px; }
+  .cb-add { color: var(--accent); }
+  .cb-del { color: var(--red); }
+  .cb-zero { color: #444; }
+
+  /* ── Contributor bar ── */
+  .contrib-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .contrib-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 14px/1 var(--serif); color: #fff;
+  }
+  .contrib-name { font: 600 14px/1 var(--serif); color: var(--text); min-width: 120px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contrib-bar { flex: 1; height: 8px; border-radius: 4px; background: #0f1020; overflow: hidden; }
+  .contrib-fill { height: 100%; border-radius: 4px; transform-origin: left; animation: barGrow .8s ease both; }
+  .contrib-count { font: 600 13px/1 var(--mono); color: #7a80a0; min-width: 70px; text-align: right; }
+
+  /* ── File bars ── */
+  .file-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .file-name { font: 12px/1 var(--mono); color: #8b90b0; min-width: 180px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-bar { flex: 1; height: 6px; border-radius: 3px; background: #0f1020; overflow: hidden; }
+  .file-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transform-origin: left; animation: barGrow .6s ease both; }
+  .file-num { font: 11px/1 var(--mono); color: var(--accent); min-width: 40px; text-align: right; }
+
+  /* ── Day chart ── */
+  .day-chart { display: flex; gap: 10px; align-items: flex-end; min-height: 90px; }
+  .day-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .day-count { font: 700 13px/1 var(--mono); color: var(--accent); }
+  .day-bar { width: 100%; max-width: 56px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--accent), var(--accent2)); opacity: .8; min-height: 8px; }
+  .day-label { font: 10px/1 var(--mono); color: var(--muted); }
+
+  /* ── Timeline ── */
+  .timeline-entry { display: flex; gap: 20px; position: relative; }
+  .timeline-stem { display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0; }
+  .timeline-dot { width: 14px; height: 14px; border-radius: 50%; z-index: 1; flex-shrink: 0; }
+  .timeline-line { width: 2px; flex: 1; background: rgba(255,255,255,0.06); margin-top: 4px; }
+  .timeline-body { flex: 1; margin-bottom: 20px; cursor: pointer; border-radius: 14px; padding: 4px 0; transition: all .2s; }
+  .timeline-body.expanded { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 18px; }
+  .timeline-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .timeline-info { flex: 1; min-width: 200px; }
+  .timeline-changes { min-width: 190px; max-width: 280px; }
+  .timeline-badges { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .timeline-msg { font: 600 14px/1.4 var(--serif); color: var(--text); margin-bottom: 4px; }
+  .timeline-meta { font: 11px/1 var(--mono); color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .timeline-meta .sha { color: var(--faint); }
+  .timeline-files { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; }
+  .timeline-files-title { font: 10px/1 var(--mono); color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 6px;
+    font: 700 10px/1 var(--mono); letter-spacing: .5px;
+  }
+
+  /* ── Pagination ── */
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 16px; }
+  .pagination button {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: #94a3b8; font: 13px/1 var(--serif); cursor: pointer;
+  }
+  .pagination button:disabled { color: #222; cursor: default; }
+  .pagination span { font: 12px/1 var(--mono); color: var(--dim); }
+
+  /* ── Hidden ── */
+  .hidden { display: none !important; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .cards { gap: 10px; }
+    .card { padding: 14px 16px; flex: 1 1 140px; }
+    .card-value { font-size: 20px; }
+    .timeline-changes { min-width: 150px; }
+    .file-name { min-width: 100px; max-width: 140px; }
+    .contrib-name { min-width: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-tag">◆ git log --stat --all</div>
+    <h1>Commit Historian</h1>
+    <p>Deep-dive into any public GitHub repository's commit history</p>
+  </div>
+
+  <!-- Input -->
+  <div class="input-row">
+    <input id="repoInput" type="text" placeholder="https://github.com/owner/repo" />
+    <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+  </div>
+
+  <!-- Status -->
+  <div id="status" class="status hidden"><span id="statusText"></span></div>
+  <div id="error" class="error-box hidden"></div>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <div id="repoHeader"></div>
+    <div id="statCards" class="cards"></div>
+    <div id="overallSection"></div>
+    <div id="dayChartSection"></div>
+    <div id="contribSection"></div>
+    <div id="fileSection"></div>
+    <div id="timelineSection"></div>
+    <p style="text-align:center;margin-top:24px;font:10px/1 var(--mono);color:#2a2e42;">
+      Data fetched via GitHub REST API · Additions &amp; deletions from per-commit stats
+    </p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// GITHUB API FETCHER
+// ═══════════════════════════════════════
+
+function parseRepo(input) {
+  const t = input.trim().replace(/\/+$/, '').replace(/\.git$/, '');
+  try {
+    const u = new URL(t);
+    if (u.hostname.includes('github.com')) {
+      const p = u.pathname.split('/').filter(Boolean);
+      if (p.length >= 2) return { owner: p[0], repo: p[1] };
+    }
+  } catch {}
+  const p = t.split('/').filter(Boolean);
+  if (p.length === 2) return { owner: p[0], repo: p[1] };
+  return null;
+}
+
+async function apiFetch(url) {
+  const token = localStorage.getItem('gh_token');
+  const headers = { Accept: 'application/vnd.github.v3+json' };
+  if (token) headers['Authorization'] = `token ${token}`;
+  let res;
+  try { res = await fetch(url, { headers }); }
+  catch (e) { throw new Error('Network error reaching GitHub API. If running inside Claude, download this HTML and open it locally.'); }
+  if (res.status === 403) {
+    const reset = res.headers.get('X-RateLimit-Reset');
+    const t = reset ? new Date(parseInt(reset)*1000).toLocaleTimeString() : 'soon';
+    throw new Error(`Rate limit exceeded (resets ${t}). Add a GitHub token: localStorage.setItem('gh_token','ghp_...')`);
+  }
+  if (res.status === 404) throw new Error('Repository not found — make sure it exists and is public.');
+  if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+  return res.json();
+}
+
+async function fetchAllCommits(owner, repo, onProgress) {
+  let page = 1, all = [];
+  while (true) {
+    const data = await apiFetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100&page=${page}`);
+    if (!Array.isArray(data) || !data.length) break;
+    all = all.concat(data);
+    onProgress(all.length);
+    if (data.length < 100) break;
+    if (++page > 30) break;
+  }
+  return all;
+}
+
+async function fetchDetail(owner, repo, sha) {
+  try { return await apiFetch(`https://api.github.com/repos/${owner}/${repo}/commits/${sha}`); }
+  catch { return null; }
+}
+
+async function fetchRepoInfo(owner, repo) {
+  try { return await apiFetch(`https://api.github.com/repos/${owner}/${repo}`); }
+  catch { return null; }
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+
+const fmtDate = d => { try { return new Date(d).toLocaleDateString('en-AU',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return d; } };
+const fmtShort = d => { try { return new Date(d).toLocaleDateString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); } catch { return d; } };
+const daysBetween = (a,b) => Math.round(Math.abs(new Date(b)-new Date(a))/864e5);
+
+function humanDur(days) {
+  if (days < 1) return 'Same day';
+  if (days < 30) return `${days} day${days>1?'s':''}`;
+  if (days < 365) { const m=Math.floor(days/30),d=days%30; return `${m} month${m>1?'s':''}${d?`, ${d}d`:''}`; }
+  const y=Math.floor(days/365),m=Math.floor((days%365)/30);
+  return `${y} year${y>1?'s':''}${m?`, ${m}mo`:''}`;
+}
+
+function classify(a,d) {
+  const t=a+d;
+  if(t===0) return {label:'Empty',color:'#555',level:0};
+  if(t<=10) return {label:'Tiny',color:'#6ee7b7',level:1};
+  if(t<=50) return {label:'Small',color:'#34d399',level:2};
+  if(t<=200) return {label:'Medium',color:'#fbbf24',level:3};
+  if(t<=600) return {label:'Large',color:'#f97316',level:4};
+  return {label:'Massive',color:'#ef4444',level:5};
+}
+
+function commitType(msg) {
+  const m=msg.toLowerCase();
+  if(m.includes('initial')||m.includes('init')||m.includes('first')) return {label:'Init',color:'var(--purple)'};
+  if(m.includes('fix')||m.includes('bug')||m.includes('patch')) return {label:'Fix',color:'var(--red)'};
+  if(m.includes('feat')||m.includes('add')||m.includes('new')||m.includes('implement')) return {label:'Feature',color:'var(--accent)'};
+  if(m.includes('refactor')||m.includes('clean')||m.includes('restructur')) return {label:'Refactor',color:'var(--blue)'};
+  if(m.includes('doc')||m.includes('comment')||m.includes('readme')) return {label:'Docs',color:'var(--yellow)'};
+  if(m.includes('test')) return {label:'Test',color:'#c084fc'};
+  if(m.includes('style')||m.includes('format')||m.includes('lint')) return {label:'Style',color:'var(--pink)'};
+  if(m.includes('merge')) return {label:'Merge',color:'#94a3b8'};
+  if(m.includes('delete')||m.includes('remove')) return {label:'Remove',color:'var(--orange)'};
+  if(m.includes('upload')) return {label:'Upload',color:'var(--sky)'};
+  if(m.includes('update')) return {label:'Update',color:'var(--sky)'};
+  return {label:'Commit',color:'var(--sky)'};
+}
+
+function badge(text, color, outline) {
+  const bg = outline ? 'transparent' : `${color}18`;
+  const bdr = outline ? `${color}50` : `${color}25`;
+  return `<span class="badge" style="background:${bg};color:${color};border:1px solid ${bdr}">${text}</span>`;
+}
+
+function changeBarHTML(add, del, wide) {
+  const t = add+del, cls = wide?'wide':'';
+  if (t===0) return `<span style="color:#333;font-size:11px">no changes</span>`;
+  const ncls = wide ? 'cb-num wide' : 'cb-num';
+  if (del===0) return `<div class="change-bar"><div class="change-bar-track ${cls}"><div class="change-bar-only-add"></div></div><span class="${ncls} cb-add">+${add.toLocaleString()}</span><span class="${ncls} cb-zero">-0</span></div>`;
+  const pct = (add/t)*100;
+  return `<div class="change-bar"><div class="change-bar-track ${cls}"><div class="change-bar-add" style="width:${pct}%"></div><div class="change-bar-del"></div></div><span class="${ncls} cb-add">+${add.toLocaleString()}</span><span class="${ncls} cb-del">-${del.toLocaleString()}</span></div>`;
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function setStatus(msg) { document.getElementById('statusText').textContent = msg; show('status'); }
+function clearStatus() { hide('status'); }
+function showError(msg) { const el = document.getElementById('error'); el.textContent = msg; show('error'); }
+
+// ═══════════════════════════════════════
+// MAIN ANALYZE FUNCTION
+// ═══════════════════════════════════════
+
+async function analyze() {
+  const input = document.getElementById('repoInput').value;
+  const parsed = parseRepo(input);
+  if (!parsed) { showError('Invalid input — use https://github.com/owner/repo or owner/repo'); return; }
+  const { owner, repo } = parsed;
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true; btn.textContent = 'Analyzing…';
+  hide('error'); hide('results');
+
+  try {
+    // Fetch repo info
+    setStatus('Fetching repository info…');
+    const repoInfo = await fetchRepoInfo(owner, repo);
+
+    // Fetch commits
+    setStatus('Fetching commits…');
+    const commits = await fetchAllCommits(owner, repo, n => setStatus(`Fetched ${n} commits…`));
+    if (!commits.length) throw new Error('No commits found.');
+
+    // Fetch details (additions/deletions) — up to 150 commits
+    const toFetch = commits.slice(0, 150);
+    const detailMap = {};
+    const batch = 6;
+    for (let i = 0; i < toFetch.length; i += batch) {
+      setStatus(`Fetching commit details… ${Math.min(i+batch, toFetch.length)}/${toFetch.length}`);
+      const chunk = toFetch.slice(i, i+batch);
+      const results = await Promise.all(chunk.map(c => fetchDetail(owner, repo, c.sha)));
+      results.filter(Boolean).forEach(d => {
+        if (d.stats) detailMap[d.sha] = {
+          additions: d.stats.additions||0,
+          deletions: d.stats.deletions||0,
+          files: (d.files||[]).map(f => ({ file: f.filename, additions: f.additions||0, deletions: f.deletions||0 })),
+        };
+      });
+    }
+
+    clearStatus();
+    renderResults(owner, repo, repoInfo, commits, detailMap);
+    show('results');
+
+  } catch (e) {
+    clearStatus();
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyze';
+  }
+}
+
+// ═══════════════════════════════════════
+// RENDERER
+// ═══════════════════════════════════════
+
+function renderResults(owner, repo, info, commits, dm) {
+  const firstDate = commits[commits.length-1].commit.author.date;
+  const lastDate = commits[0].commit.author.date;
+  const devDays = daysBetween(firstDate, lastDate);
+  const diffHours = Math.round((new Date(lastDate)-new Date(firstDate))/36e5*10)/10;
+  const devStr = devDays > 0 ? humanDur(devDays) : (diffHours > 0 ? `${diffHours} hours` : 'Single session');
+  const devSub = devDays > 0 ? `${devDays} days` : `${diffHours}h active`;
+
+  // Author stats
+  const authorMap = {};
+  commits.forEach(c => { const n = c.commit.author.name||'Unknown'; authorMap[n] = (authorMap[n]||0)+1; });
+  const authors = Object.entries(authorMap).sort((a,b) => b[1]-a[1]);
+
+  // Totals
+  let tAdd=0, tDel=0;
+  Object.values(dm).forEach(d => { tAdd+=d.additions; tDel+=d.deletions; });
+  const net = tAdd-tDel;
+  const ratio = tDel > 0 ? (tAdd/tDel).toFixed(1) : '∞';
+
+  // Day groups
+  const dayMap = {};
+  commits.forEach(c => { const day = new Date(c.commit.author.date).toLocaleDateString('en-AU',{day:'numeric',month:'short'}); dayMap[day]=(dayMap[day]||0)+1; });
+  const dayEntries = Object.entries(dayMap).reverse();
+
+  // File aggregation
+  const fileAdds = {};
+  Object.values(dm).forEach(d => d.files.forEach(f => { fileAdds[f.file]=(fileAdds[f.file]||0)+f.additions; }));
+  const fileSorted = Object.entries(fileAdds).sort((a,b) => b[1]-a[1]).slice(0, 20);
+
+  // ── Repo Header ──
+  const lang = info?.language || '';
+  const stars = info?.stargazers_count || 0;
+  const forks = info?.forks_count || 0;
+  const desc = info?.description || '';
+  document.getElementById('repoHeader').innerHTML = `
+    <div class="fade-up" style="margin-bottom:28px">
+      <div class="repo-title"><span class="owner">${owner}</span><span class="sep"> / </span>${repo}</div>
+      ${desc ? `<p style="color:var(--muted);font-size:14px;margin-top:4px">${desc}</p>` : ''}
+      <div class="repo-meta">
+        ${lang ? `<span>⬤ ${lang}</span>` : ''}
+        ${stars ? `<span>★ ${stars.toLocaleString()}</span>` : ''}
+        ${forks ? `<span>⑂ ${forks.toLocaleString()}</span>` : ''}
+        <span>📄 ${info?.size ? Math.round(info.size/1024)+'MB' : ''}</span>
+      </div>
+    </div>`;
+
+  // ── Stat Cards ──
+  const perWeek = devDays > 0 ? (commits.length / Math.max(1, Math.ceil(devDays/7))).toFixed(1) : commits.length;
+  document.getElementById('statCards').innerHTML = [
+    cardHTML('📅','First Commit', fmtDate(firstDate)),
+    cardHTML('🏁','Last Commit', fmtDate(lastDate)),
+    cardHTML('⏱','Dev Period', devStr, devSub),
+    cardHTML('📝','Total Commits', commits.length.toLocaleString(), `~${perWeek}/week`),
+    cardHTML('➕','Lines Added', `+${tAdd.toLocaleString()}`, `across ≤${Object.keys(dm).length} commits`, 'green'),
+    cardHTML('➖','Lines Removed', `-${tDel.toLocaleString()}`, '', tDel>0?'red':''),
+    cardHTML('📊','Net Lines', `${net>=0?'+':''}${net.toLocaleString()}`, `Add/Del ratio: ${ratio}:1`, 'purple'),
+    cardHTML('👤','Contributors', authors.length, authors[0]?.[0]||''),
+  ].join('');
+
+  // ── Overall bar ──
+  const addPct = tAdd+tDel > 0 ? ((tAdd/(tAdd+tDel))*100).toFixed(1) : 100;
+  const delPct = tAdd+tDel > 0 ? ((tDel/(tAdd+tDel))*100).toFixed(1) : 0;
+  document.getElementById('overallSection').innerHTML = `
+    <div class="section fade-up fade-up-1">
+      <div class="section-title">Overall Additions vs Deletions</div>
+      ${changeBarHTML(tAdd, tDel, true)}
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font:11px/1 var(--mono);color:var(--muted)">
+        <span>${addPct}% additions</span><span>${delPct}% deletions</span>
+      </div>
+    </div>`;
+
+  // ── Day chart ──
+  if (dayEntries.length > 1) {
+    const maxDay = Math.max(...dayEntries.map(e=>e[1]));
+    document.getElementById('dayChartSection').innerHTML = `
+      <div class="section fade-up fade-up-2">
+        <div class="section-title">Commits Per Day</div>
+        <div class="day-chart">
+          ${dayEntries.map(([day,count]) => `
+            <div class="day-col">
+              <span class="day-count">${count}</span>
+              <div class="day-bar" style="height:${(count/maxDay)*55+8}px"></div>
+              <span class="day-label">${day}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('dayChartSection').innerHTML = '';
+  }
+
+  // ── Contributors ──
+  const maxC = authors[0]?.[1]||1;
+  document.getElementById('contribSection').innerHTML = `
+    <div class="section fade-up fade-up-3">
+      <div class="section-title">Contributors</div>
+      ${authors.slice(0,15).map(([name,count],i) => {
+        const hue = 160 - i*18;
+        return `<div class="contrib-row">
+          <div class="contrib-avatar" style="background:hsl(${hue},50%,40%)">${name[0].toUpperCase()}</div>
+          <span class="contrib-name">${name}</span>
+          <div class="contrib-bar"><div class="contrib-fill" style="width:${(count/maxC)*100}%;background:linear-gradient(90deg,hsl(${hue},60%,45%),hsl(${hue},60%,55%))"></div></div>
+          <span class="contrib-count">${count} commit${count>1?'s':''}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  // ── File breakdown ──
+  if (fileSorted.length) {
+    const maxF = fileSorted[0][1]||1;
+    document.getElementById('fileSection').innerHTML = `
+      <div class="section fade-up fade-up-4">
+        <div class="section-title">Files by Lines Added (top ${fileSorted.length})</div>
+        ${fileSorted.map(([file,lines]) => `
+          <div class="file-row">
+            <span class="file-name">${file}</span>
+            <div class="file-bar"><div class="file-fill" style="width:${(lines/maxF)*100}%"></div></div>
+            <span class="file-num">+${lines.toLocaleString()}</span>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  // ── Timeline ──
+  const enriched = commits.map(c => {
+    const d = dm[c.sha];
+    return {
+      sha: c.sha,
+      author: c.commit.author.name||'Unknown',
+      date: c.commit.author.date,
+      message: c.commit.message.split('\n')[0],
+      additions: d?.additions||0,
+      deletions: d?.deletions||0,
+      files: d?.files||[],
+      hasDetail: !!d,
+    };
+  });
+
+  const PAGE = 30;
+  let page = 0;
+  const totalPages = Math.ceil(enriched.length / PAGE);
+
+  function renderTimeline() {
+    const start = page * PAGE, end = start + PAGE;
+    const slice = enriched.slice(start, end);
+    const total = enriched.length;
+
+    let html = `<div class="section fade-up fade-up-5">
+      <div class="section-title">Commit Timeline (${enriched.length} commits) — click to expand</div>`;
+
+    slice.forEach((c, localIdx) => {
+      const globalIdx = start + localIdx;
+      const isFirst = globalIdx === total-1;
+      const isLast = globalIdx === 0;
+      const sig = classify(c.additions, c.deletions);
+      const type = commitType(c.message);
+      const dotColor = isFirst ? 'var(--purple)' : isLast ? 'var(--accent)' : sig.color;
+      const id = `tl-${c.sha.slice(0,8)}`;
+
+      html += `
+      <div class="timeline-entry">
+        <div class="timeline-stem">
+          <div class="timeline-dot" style="background:${dotColor};border:2px solid ${dotColor}40;box-shadow:0 0 12px ${dotColor}30"></div>
+          ${localIdx < slice.length-1 ? '<div class="timeline-line"></div>' : ''}
+        </div>
+        <div class="timeline-body" id="${id}" onclick="toggleTimeline('${id}')">
+          <div class="timeline-top">
+            <div class="timeline-info">
+              <div class="timeline-badges">
+                ${badge(type.label, type.color)}
+                ${badge(sig.label, sig.color, true)}
+                ${isFirst ? badge('FIRST COMMIT','var(--purple)') : ''}
+                ${isLast ? badge('LATEST','var(--accent)') : ''}
+              </div>
+              <div class="timeline-msg">${c.message}</div>
+              <div class="timeline-meta">
+                <span>${c.author}</span>
+                <span>${fmtShort(c.date)}</span>
+                <span class="sha"><a href="https://github.com/${owner}/${repo}/commit/${c.sha}" target="_blank">${c.sha.slice(0,7)}</a></span>
+              </div>
+            </div>
+            <div class="timeline-changes">
+              ${c.hasDetail ? changeBarHTML(c.additions, c.deletions) : '<span style="color:#333;font-size:11px">—</span>'}
+            </div>
+          </div>
+          <div class="timeline-files hidden" id="${id}-files">
+            <div class="timeline-files-title">${c.files.length} file${c.files.length!==1?'s':''} changed</div>
+            ${c.files.map(f => `
+              <div class="file-row">
+                <span class="file-name">${f.file}</span>
+                <div class="file-bar" style="flex:1">${changeBarHTML(f.additions, f.deletions)}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    });
+
+    // Pagination
+    if (totalPages > 1) {
+      html += `<div class="pagination">
+        <button onclick="event.stopPropagation();tlPage(${page-1})" ${page===0?'disabled':''}>← Prev</button>
+        <span>${page+1} / ${totalPages}</span>
+        <button onclick="event.stopPropagation();tlPage(${page+1})" ${page>=totalPages-1?'disabled':''}>Next →</button>
+      </div>`;
+    }
+
+    html += `</div>`;
+    document.getElementById('timelineSection').innerHTML = html;
+  }
+
+  window.tlPage = function(p) { page = Math.max(0, Math.min(totalPages-1, p)); renderTimeline(); };
+  renderTimeline();
+}
+
+function cardHTML(icon, label, value, sub, cls) {
+  return `<div class="card fade-up">
+    <div class="card-icon">${icon}</div>
+    <div class="card-label">${label}</div>
+    <div class="card-value ${cls||''}">${value}</div>
+    ${sub ? `<div class="card-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+window.toggleTimeline = function(id) {
+  const body = document.getElementById(id);
+  const files = document.getElementById(id+'-files');
+  if (!files) return;
+  const expanded = body.classList.toggle('expanded');
+  files.classList.toggle('hidden', !expanded);
+};
+
+// Enter key
+document.getElementById('repoInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') analyze();
+});
+</script>
+
+</body>
+</html>

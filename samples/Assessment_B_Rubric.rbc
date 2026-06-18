@@ -1,0 +1,320 @@
+{
+  "Rubric": [
+    {
+      "id": 2000001,
+      "name": "Assessment B Rubric",
+      "description": "ITS203 Individual Assignment – OOP Application Project (25% of final mark)",
+      "owner": 1179196701,
+      "scoring_method": 2,
+      "distribute_criterion_percentage": 0,
+      "total_points": null,
+      "papers_scored": 0,
+      "rubric_group": null,
+      "cv_loaded": "1",
+      "is_starred": 0,
+      "deleted": 0,
+      "scale_values": [20000001, 20000002, 20000003, 20000004, 20000005],
+      "criterion": [30000001, 30000002, 30000003, 30000004, 30000005, 30000006],
+      "criterion_scales_all": [
+        40000001, 40000002, 40000003, 40000004, 40000005,
+        40000006, 40000007, 40000008, 40000009, 40000010,
+        40000011, 40000012, 40000013, 40000014, 40000015,
+        40000016, 40000017, 40000018, 40000019, 40000020,
+        40000021, 40000022, 40000023, 40000024, 40000025,
+        40000026, 40000027, 40000028, 40000029, 40000030
+      ]
+    }
+  ],
+  "RubricScale": [
+    {"id": 20000001, "rubric": 2000001, "num": 1, "name": "High Distinction", "value": 100, "position": 1},
+    {"id": 20000002, "rubric": 2000001, "num": 2, "name": "Distinction",      "value": 75,  "position": 2},
+    {"id": 20000003, "rubric": 2000001, "num": 3, "name": "Credit",           "value": 65,  "position": 3},
+    {"id": 20000004, "rubric": 2000001, "num": 4, "name": "Pass",             "value": 50,  "position": 4},
+    {"id": 20000005, "rubric": 2000001, "num": 5, "name": "Fail",             "value": 0,   "position": 5}
+  ],
+  "RubricCriterion": [
+    {
+      "id": 30000001,
+      "rubric": 2000001,
+      "num": 1,
+      "position": 1,
+      "name": "Problem Definition & Proposal",
+      "description": "Quality of problem definition, justification, functional and non-functional requirements, and idea proposal document. (5 marks)",
+      "value": 20.0,
+      "previous_version": null,
+      "criterion_scales": [40000001, 40000002, 40000003, 40000004, 40000005]
+    },
+    {
+      "id": 30000002,
+      "rubric": 2000001,
+      "num": 2,
+      "position": 2,
+      "name": "OOP Principles & Design",
+      "description": "Demonstration of classes, inheritance, polymorphism, encapsulation, and abstraction with appropriate class hierarchy and design rationale. (8 marks)",
+      "value": 32.0,
+      "previous_version": null,
+      "criterion_scales": [40000006, 40000007, 40000008, 40000009, 40000010]
+    },
+    {
+      "id": 30000003,
+      "rubric": 2000001,
+      "num": 3,
+      "position": 3,
+      "name": "Functionality & Implementation",
+      "description": "Application functionality, completeness of proposed features, exception handling, and optional database integration. (5 marks)",
+      "value": 20.0,
+      "previous_version": null,
+      "criterion_scales": [40000011, 40000012, 40000013, 40000014, 40000015]
+    },
+    {
+      "id": 30000004,
+      "rubric": 2000001,
+      "num": 4,
+      "position": 4,
+      "name": "UI Design & User Experience",
+      "description": "Visual design, layout consistency, appropriate use of Windows Forms controls, and ease of navigation. (2 marks)",
+      "value": 8.0,
+      "previous_version": null,
+      "criterion_scales": [40000016, 40000017, 40000018, 40000019, 40000020]
+    },
+    {
+      "id": 30000005,
+      "rubric": 2000001,
+      "num": 5,
+      "position": 5,
+      "name": "Version Control & Commit History",
+      "description": "Number, spread, and quality of Git commits demonstrating consistent incremental development over the project period. (3 marks)",
+      "value": 12.0,
+      "previous_version": null,
+      "criterion_scales": [40000021, 40000022, 40000023, 40000024, 40000025]
+    },
+    {
+      "id": 30000006,
+      "rubric": 2000001,
+      "num": 6,
+      "position": 6,
+      "name": "Live Demo & Presentation",
+      "description": "Clarity, preparation, and depth of understanding demonstrated during the in-class live demonstration and Q&A. (2 marks)",
+      "value": 8.0,
+      "previous_version": null,
+      "criterion_scales": [40000026, 40000027, 40000028, 40000029, 40000030]
+    }
+  ],
+  "RubricCriterionScale": [
+    {
+      "id": 40000001,
+      "criterion": 30000001,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "Exceptionally well-defined problem with thorough justification. Comprehensive functional and non-functional requirements. Outstanding idea document with clear inspiration and scope."
+    },
+    {
+      "id": 40000002,
+      "criterion": 30000001,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "Well-defined problem with strong justification. Detailed requirements and clear scope. Excellent documentation of idea and inspiration."
+    },
+    {
+      "id": 40000003,
+      "criterion": 30000001,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "Adequately defined problem. Reasonable functional and non-functional requirements. Satisfactory idea document."
+    },
+    {
+      "id": 40000004,
+      "criterion": 30000001,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Basic problem definition with minimal justification. Limited requirements listed. Idea document meets minimum expectations."
+    },
+    {
+      "id": 40000005,
+      "criterion": 30000001,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "Problem poorly defined or missing. Requirements absent or incoherent. No meaningful idea document submitted."
+    },
+
+    {
+      "id": 40000006,
+      "criterion": 30000002,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "Exemplary use of classes, inheritance, polymorphism, encapsulation, and abstraction. Sophisticated class hierarchy with clear design rationale. Effective use of interfaces or abstract classes where appropriate."
+    },
+    {
+      "id": 40000007,
+      "criterion": 30000002,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "Strong demonstration of all core OOP principles. Well-structured class hierarchy. Good use of encapsulation and inheritance."
+    },
+    {
+      "id": 40000008,
+      "criterion": 30000002,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "Adequate use of at least 3 OOP principles. Reasonable class structure. Some evidence of encapsulation and inheritance."
+    },
+    {
+      "id": 40000009,
+      "criterion": 30000002,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Basic use of classes and objects. Minimal inheritance or polymorphism. Limited evidence of OOP thinking."
+    },
+    {
+      "id": 40000010,
+      "criterion": 30000002,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "Little to no use of OOP principles. Code is largely procedural. No meaningful class design."
+    },
+
+    {
+      "id": 40000011,
+      "criterion": 30000003,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "Application is fully functional with no bugs. All proposed features implemented and working. Excellent error/exception handling. Database integration (if applicable) is seamless."
+    },
+    {
+      "id": 40000012,
+      "criterion": 30000003,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "Application is functional with minor issues. Most proposed features implemented. Good error handling. Database connection works well."
+    },
+    {
+      "id": 40000013,
+      "criterion": 30000003,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "Core functionality works. Some proposed features implemented. Basic error handling present."
+    },
+    {
+      "id": 40000014,
+      "criterion": 30000003,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Limited functionality. Several features incomplete or buggy. Minimal error handling."
+    },
+    {
+      "id": 40000015,
+      "criterion": 30000003,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "Application does not run or crashes frequently. Major features missing. No error handling."
+    },
+
+    {
+      "id": 40000016,
+      "criterion": 30000004,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "Visually polished, intuitive Windows Forms UI. Consistent layout, appropriate use of controls. Excellent user experience and navigation."
+    },
+    {
+      "id": 40000017,
+      "criterion": 30000004,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "Clean and well-organised UI. Good use of Windows Forms controls. Straightforward navigation."
+    },
+    {
+      "id": 40000018,
+      "criterion": 30000004,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "Acceptable UI layout. Functional use of controls. Reasonable navigation."
+    },
+    {
+      "id": 40000019,
+      "criterion": 30000004,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Basic UI with limited styling. Controls functional but poorly arranged. Confusing navigation."
+    },
+    {
+      "id": 40000020,
+      "criterion": 30000004,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "No meaningful UI design effort. Controls misused or missing. Application is unusable."
+    },
+
+    {
+      "id": 40000021,
+      "criterion": 30000005,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "10+ meaningful commits spread over 3+ weeks. Clear, descriptive commit messages. Demonstrates consistent, incremental development."
+    },
+    {
+      "id": 40000022,
+      "criterion": 30000005,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "10+ commits with good spread. Descriptive commit messages. Evidence of regular development."
+    },
+    {
+      "id": 40000023,
+      "criterion": 30000005,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "At least 10 commits. Reasonable spread over the development period. Adequate commit messages."
+    },
+    {
+      "id": 40000024,
+      "criterion": 30000005,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Fewer than 10 commits or clustered in a short period. Vague commit messages. Limited evidence of incremental work."
+    },
+    {
+      "id": 40000025,
+      "criterion": 30000005,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "Very few commits or all in one session. No meaningful commit messages. Repository missing or inaccessible."
+    },
+
+    {
+      "id": 40000026,
+      "criterion": 30000006,
+      "scale_value": 20000001,
+      "value": 0,
+      "description": "Articulate, confident, and well-prepared demo. Demonstrates deep understanding of code and design. Handles questions expertly."
+    },
+    {
+      "id": 40000027,
+      "criterion": 30000006,
+      "scale_value": 20000002,
+      "value": 0,
+      "description": "Well-prepared demo with clear explanations. Good understanding of code. Answers questions confidently."
+    },
+    {
+      "id": 40000028,
+      "criterion": 30000006,
+      "scale_value": 20000003,
+      "value": 0,
+      "description": "Reasonable demo covering main features. Adequate understanding of code. Answers basic questions."
+    },
+    {
+      "id": 40000029,
+      "criterion": 30000006,
+      "scale_value": 20000004,
+      "value": 0,
+      "description": "Unprepared or unclear demo. Limited understanding of own code. Struggles with questions."
+    },
+    {
+      "id": 40000030,
+      "criterion": 30000006,
+      "scale_value": 20000005,
+      "value": 0,
+      "description": "No demo presented. Cannot explain code or design. Absent or non-responsive."
+    }
+  ]
+}
